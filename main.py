@@ -29,6 +29,21 @@ def get_module_name(file_path, root_dir):
             return ':'.join(parts[:src_index])
     return "unknown"
 
+def print_duplicates(combined_root):
+    strings_values = {}
+    for string in combined_root.findall("string"):
+        value = string.text
+        if value in strings_values:
+            strings_values[value].append(string)
+        else:
+            strings_values[value] = [string]
+
+    for value, strings in strings_values.items():
+        if len(strings) > 1:
+            print(f"String value '{value}' is duplicated in the following strings:")
+            for string in strings:
+                print(f"  - {string.attrib['name']}")
+            print()
 
 def combine_strings_files(strings_files, output_file, root_dir):
     """Combine all strings.xml files into a single XML file."""
@@ -44,6 +59,9 @@ def combine_strings_files(strings_files, output_file, root_dir):
             combined_root.append(string)
     
     combined_tree = ET.ElementTree(combined_root)
+
+    # print all strings values that are duplicated
+    print_duplicates(combined_root)
     
     with open(output_file, "wb") as f:
         combined_tree.write(f, encoding="utf-8", xml_declaration=True)
